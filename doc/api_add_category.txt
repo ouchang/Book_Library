@@ -1,0 +1,13 @@
+# Add Category
+
+# Librarian is able to add new Category
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s -XPOST http://localhost:8080/book-library/librarian/category  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @newCategory.json | jq
+
+** example newbook.json payload
+> cat newCatgory.json
+{"category": "Comic"}
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)

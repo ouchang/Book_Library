@@ -101,17 +101,44 @@ func SetupRouter() *gin.Engine {
 	{
 		bookAdmin.GET("user", controllers.GetUsers)
 		bookAdmin.POST("user", controllers.AddUser)
+
+		bookAdmin.GET("employee", controllers.GetEmployees)
+		bookAdmin.POST("employee", controllers.AddEmployee)
 	}
 
 	bookLibrarian.Use(authMiddlewareLibrarian.MiddlewareFunc())
 	{
 		bookLibrarian.POST("book", controllers.AddBook)
 		bookLibrarian.GET("book", controllers.GetBooks)
+
+		bookLibrarian.GET("category", controllers.GetCategories)
+		bookLibrarian.POST("category", controllers.AddCategory)
+
+		bookLibrarian.GET("borrow", controllers.GetBorrows)
+		bookLibrarian.POST("borrow", controllers.AddBorrow)
+
+		bookLibrarian.POST("return", controllers.ReturnBook)
+
+		bookLibrarian.GET("copy", controllers.GetCopies)
+
+		bookLibrarian.GET("avaliable", controllers.GetAvaliable)
+
+		bookLibrarian.POST("copy", controllers.AddBookCopy)
+
+		bookLibrarian.POST("renew", controllers.RenewBook)
 	}
 
 	bookUser.Use(authMiddlewareUser.MiddlewareFunc())
 	{
 		bookUser.GET("book", controllers.GetBooks)
+
+		bookUser.GET("category", controllers.GetCategories)
+
+		bookUser.GET("avaliable", controllers.GetAvaliable)
+
+		bookUser.POST("renew", controllers.RenewBook)
+
+		//bookUser.POST("info", controllers.GetUserProfileInfo)
 	}
 
 	return r

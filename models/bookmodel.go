@@ -7,6 +7,7 @@ import (
 
 type Book struct {
 	Id              uint   `json:"id"`
+	ISBN            string `json:"isbn" binding:"required"`
 	Title           string `json:"title" binding:"required"`
 	Author          string `json:"author" binding:"required"`
 	PublicationYear int    `json:"publication_year" binding:"required"`
@@ -14,6 +15,7 @@ type Book struct {
 }
 
 type NewBook struct {
+	ISBN            string `json:"isbn" binding:"required"`
 	Title           string `json:"title" binding:"required"`
 	Author          string `json:"author" binding:"required"`
 	PublicationYear int    `json:"publication_year" binding:"required"`
@@ -24,9 +26,16 @@ func (b *Book) TableName() string {
 	return "Books"
 }
 
-//GetAllBooks Fetch all book data
+// GetAllBooks Fetch all book data
 func GetAllBooks(books *[]Book) (err error) {
 	if err = config.ORMDB.Find(books).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetBooksByTitle(books *[]Book, title string) (err error) {
+	if err = config.ORMDB.Where("title LIKE ?", "%"+title+"%").Find(&books).Error; err != nil {
 		return err
 	}
 	return nil
@@ -35,7 +44,7 @@ func GetAllBooks(books *[]Book) (err error) {
 func AddBook(book NewBook) (err error) {
 	var addBookCode int
 
-	bookAdd, err := config.DB.Query("call addBook(?, ?, ?, ?)", book.Title, book.Author, book.PublicationYear, book.Category)
+	bookAdd, err := config.DB.Query("call addBook(?, ?, ?, ?, ?)", book.ISBN, book.Title, book.Author, book.PublicationYear, book.Category)
 	if err != nil {
 		return err
 	}

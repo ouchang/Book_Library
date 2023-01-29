@@ -1,0 +1,26 @@
+# Show avaliable books
+
+# Customer and Librarian can check avaliable books
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s http://localhost:8080/book-library/customer/avaliable  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>"  | jq
+
+[
+  {
+    "book_id": 1,
+    "status": "avaliable"
+  },
+  {
+    "book_id": 2,
+    "status": "avaliable"
+  },
+  {
+    "book_id": 3,
+    "status": "avaliable"
+  },
+  {
+    "book_id": 4,
+    "status": "avaliable"
+  }
+]

@@ -1,6 +1,6 @@
 # Show All books
 
-# Librarian and Customer is able to show ALL BOOKS 
+# Librarian and Customer are able to show ALL BOOKS 
 
 # example for Librarian
 
@@ -10,6 +10,7 @@ curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type
 [
   {
     "id": 1,
+    "isbn": "978-3-16-148410-0",
     "title": "A Tale Of Two Cities",
     "author": "Charles Dickens",
     "publication_year": 2018,
@@ -17,6 +18,7 @@ curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type
   },
   {
     "id": 2,
+    "isbn": "922-3-16-148410-0",
     "title": "The Little Prince",
     "author": "Antoine de Saint-Exupery",
     "publication_year": 2021,
@@ -24,6 +26,7 @@ curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type
   },
   {
     "id": 3,
+    "isbn": "989-3-16-148410-0",
     "title": "The Hobbit",
     "author": "JRR Tolkien",
     "publication_year": 2015,
@@ -31,6 +34,7 @@ curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type
   },
   {
     "id": 4,
+    "isbn": "998-3-22-148610-0",
     "title": "Death On The Nile",
     "author": "Agatha Christie",
     "publication_year": 2012,
@@ -38,7 +42,8 @@ curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type
   },
   {
     "id": 5,
-    "title": "Kubus Puchatek",
+    "isbn": "978-3-16-148410-0",
+    "title": "Kubus Puchatek 2",
     "author": "X Y",
     "publication_year": 2023,
     "category_id": 7
@@ -50,40 +55,3 @@ curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type
 ** JWT - this is the token taken from API LOGIN call (see api_login.txt)
 
 curl -s http://localhost:8080/book-library/customer/book --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq 
-[
-  {
-    "id": 1,
-    "title": "A Tale Of Two Cities",
-    "author": "Charles Dickens",
-    "publication_year": 2018,
-    "category_id": 8
-  },
-  {
-    "id": 2,
-    "title": "The Little Prince",
-    "author": "Antoine de Saint-Exupery",
-    "publication_year": 2021,
-    "category_id": 4
-  },
-  {
-    "id": 3,
-    "title": "The Hobbit",
-    "author": "JRR Tolkien",
-    "publication_year": 2015,
-    "category_id": 7
-  },
-  {
-    "id": 4,
-    "title": "Death On The Nile",
-    "author": "Agatha Christie",
-    "publication_year": 2012,
-    "category_id": 6
-  },
-  {
-    "id": 5,
-    "title": "Kubus Puchatek",
-    "author": "X Y",
-    "publication_year": 2023,
-    "category_id": 7
-  }
-]

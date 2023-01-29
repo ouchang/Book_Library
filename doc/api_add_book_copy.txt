@@ -1,0 +1,12 @@
+# Add Book Copy 
+
+# Librarian is able to add a new book Copy
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s  -XPOST  http://localhost:8080/book-library/lib
+rarian/copy  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @newBookCopy.json  | jq
+
+** example newBookCopy.json payload
+> cat newBookCopy.json
+{"isbn":"922-3-16-148410-0"}

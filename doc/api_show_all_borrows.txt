@@ -1,0 +1,17 @@
+# Show All Borrows 
+
+# Librarian is able to show all Borrows
+
+curl -s http://localhost:8080/book-library/librarian/borrow  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq
+
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "book_id": 1,
+    "employee_id": 1,
+    "release_date": "2023-01-29",
+    "due_date": "2023-02-28",
+    "returned_date": ""
+  }
+]
