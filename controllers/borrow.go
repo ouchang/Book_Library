@@ -32,3 +32,33 @@ func AddBorrow(c *gin.Context) {
 		}
 	}
 }
+
+func ReturnBook(c *gin.Context) {
+	var returned models.ReturnRenew
+	var err error
+
+	if err = c.BindJSON(&returned); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if err = models.ReturnBook(returned); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.IndentedJSON(http.StatusCreated, returned)
+		}
+	}
+}
+
+func RenewBook(c *gin.Context) {
+	var renewed models.ReturnRenew
+	var err error
+
+	if err = c.BindJSON(&renewed); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if err = models.RenewBook(renewed); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.IndentedJSON(http.StatusCreated, renewed)
+		}
+	}
+}

@@ -624,16 +624,11 @@ BEGIN
 		EXECUTE stmt USING @tempUserId, @tempBookId;
 		DEALLOCATE PREPARE stmt;
 
-		SELECT @releaseDate;
-		SELECT @dueDate;
-
 		IF @logId = 0 THEN
 			SET @successFlag = 0;
 		ELSE
 			SET @newDate = (SELECT DATE_ADD(@dueDate, INTERVAL 1 MONTH));
-			SELECT @newDate;
 			SET @monthDiff = (SELECT TIMESTAMPDIFF(MONTH, @releaseDate, @newDate));
-			SELECT @monthDiff;
 
 			IF @monthDiff > 2 THEN
 				SET @successFlag = 0;
