@@ -1,0 +1,31 @@
+# Show Books Based On Title 
+
+# Customer (user) is able to show books based on their title
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s 'http://localhost:8080/book-library/customer/book?title=The'  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>"  | jq
+
+[
+  {
+    "id": 2,
+    "title": "The Little Prince",
+    "author": "Antoine de Saint-Exupery",
+    "publication_year": 2021,
+    "category_id": 4
+  },
+  {
+    "id": 3,
+    "title": "The Hobbit",
+    "author": "JRR Tolkien",
+    "publication_year": 2015,
+    "category_id": 7
+  },
+  {
+    "id": 4,
+    "title": "Death On The Nile",
+    "author": "Agatha Christie",
+    "publication_year": 2012,
+    "category_id": 6
+  }
+]

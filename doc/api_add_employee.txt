@@ -1,2 +1,15 @@
 # Add Employee
 
+# Admin is able to add Employee (Librarian and Admin type)
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s  -XPOST  http://localhost:8080/book-library/admin/employee  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @newEmployee.json | jq
+
+** example newEmployeeLibrarian.json payload
+> cat newEmployeeLibrarian.json
+{"first_name": "Wiktor","last_name": "Kaska", "login": "wkaska", "password": "wk123", "employee_type": "librarian"}
+
+** example newEmployeeAdmin.json payload
+> cat newEmployeeAdmin.json
+{"first_name": "Magdalena","last_name": "Wiatrak", "login": "mwiatrak", "password": "adminmw", "employee_type": "admin"}

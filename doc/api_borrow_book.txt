@@ -1,0 +1,11 @@
+# Borrow Book
+
+# Librarian is able to borrow book
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s -XPOST http://localhost:8080/book-library/librarian/borrow  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @newBorrow.json | jq
+
+** example newBorrow.json payload
+> cat newBorrow.json
+{"user_id": 1, "book_id": 1, "employee_id": 3}

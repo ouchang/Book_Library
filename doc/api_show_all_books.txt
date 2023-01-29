@@ -1,6 +1,6 @@
 # Show All books
 
-# Librarian and Customer is able to show ALL BOOKS 
+# Librarian and Customer are able to show ALL BOOKS 
 
 # example for Librarian
 

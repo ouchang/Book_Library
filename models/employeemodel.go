@@ -23,7 +23,7 @@ func (e *Employee) TableName() string {
 	return "Employees"
 }
 
-func GetEmployees(employees *[]Employee) (err error) {
+func GetAllEmployees(employees *[]Employee) (err error) {
 	if err = config.ORMDB.Find(employees).Error; err != nil {
 		return err
 	}
@@ -51,6 +51,32 @@ func LoginEmployee(loginemployee LoginAuth, kind string) (err error) {
 
 	if loginEmployeeCode == 0 {
 		return fmt.Errorf("mysql procedure logInLibrarian failed")
+	}
+
+	return nil
+}
+
+func AddEmployee(employee Employee) (err error) {
+	var registerCode int
+	insert, err := config.DB.Query("call registerEmployee(?, ?, ?, ?, ?)", employee.FirstName, employee.LastName, employee.Login, employee.Password, employee.EmployeeType)
+
+	if err != nil {
+		return err
+	}
+
+	for insert.Next() {
+
+		err2 := insert.Scan(&registerCode)
+
+		if err2 != nil {
+			return err2
+		}
+	}
+
+	defer insert.Close()
+
+	if registerCode == 0 {
+		return fmt.Errorf("mysql procedure registerEmployee failed")
 	}
 
 	return nil

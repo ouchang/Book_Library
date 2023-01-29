@@ -9,7 +9,16 @@ import (
 
 func GetBooks(c *gin.Context) {
 	var books []models.Book
-	err := models.GetAllBooks(&books)
+	var err error
+
+	title, ok := c.GetQuery("title")
+
+	if ok {
+		err = models.GetBooksByTitle(&books, title)
+	} else {
+		err = models.GetAllBooks(&books)
+	}
+
 	if err != nil {
 		c.AbortWithStatus(http.StatusNotFound)
 	} else {

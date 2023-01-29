@@ -30,3 +30,17 @@ func AddUser(c *gin.Context) {
 		}
 	}
 }
+
+func GetUserProfileInfo(c *gin.Context) {
+	var profile models.ProfileInfo
+	var err error
+	if err = c.BindJSON(&profile); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if err = models.GetProfileInfo(profile); err != nil {
+			c.AbortWithStatus(http.StatusNotFound)
+		} else {
+			c.JSON(http.StatusOK, profile)
+		}
+	}
+}

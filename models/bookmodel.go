@@ -24,9 +24,16 @@ func (b *Book) TableName() string {
 	return "Books"
 }
 
-//GetAllBooks Fetch all book data
+// GetAllBooks Fetch all book data
 func GetAllBooks(books *[]Book) (err error) {
 	if err = config.ORMDB.Find(books).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetBooksByTitle(books *[]Book, title string) (err error) {
+	if err = config.ORMDB.Where("title LIKE ?", "%"+title+"%").Find(&books).Error; err != nil {
 		return err
 	}
 	return nil

@@ -23,9 +23,7 @@ CREATE TABLE IF NOT EXISTS Users (
   created_year year NOT NULL,
   phone_number int NOT NULL,
   login varchar(512) NOT NULL,
-  password varchar(255) NOT NULL,
-  numOfBorrowedBooks int DEFAULT 0,
-  delayPenalty int DEFAULT 0
+  password varchar(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Employees (
@@ -50,6 +48,7 @@ CREATE TABLE IF NOT EXISTS BorrowLog (
   employee_id int(11) NOT NULL,
   release_date date NOT NULL,
   due_date date NOT NULL,
+	returned_date date,
   FOREIGN KEY (user_id) REFERENCES Users(id),
   FOREIGN KEY (book_id) REFERENCES Books(id),
   FOREIGN KEY (employee_id) REFERENCES Employees(id)
@@ -96,55 +95,6 @@ BEGIN
 END$$
 DELIMITER ;
 
-/*
-DELIMITER $$
-CREATE PROCEDURE addBook(
-IN title varchar(1000),
-IN author varchar(1000),
-IN publication_year YEAR,
-IN category varchar(255)
-)
-BEGIN
-	DECLARE tempTitle VARCHAR(1000);
-	DECLARE tempAuthor VARCHAR(1000);
-	DECLARE tempPublicationYear YEAR;
-	DECLARE tempCategory VARCHAR(255);
-	DECLARE tempCategoryId int(5);
-	DECLARE bookId int(11);
-	
-	SET @tempTitle = title;
-	SET @tempAuthor = author;
-	SET @tempPublicationYear = publication_year;
-	SET @tempCategory = category;
-	SET @tempCategoryId = 0;
-	
-		
-	SET autocommit = 0;
-	START TRANSACTION;
-	
-		SET @queryCategory = 'SELECT id INTO @tempCategoryId FROM BookCategories WHERE BookCategories.category = ?';
-		PREPARE stmt FROM @queryCategory;
-		EXECUTE stmt USING @tempCategory;
-		DEALLOCATE PREPARE stmt;
-	
-		SET @query1 = 'INSERT INTO Books(title, author, publication_year, category_id) VALUES(?, ?, ?, ?)';
-		PREPARE stmt FROM @query1;
-		EXECUTE stmt USING @tempTitle, @tempAuthor, @tempPublicationYear, @tempCategoryId;
-		DEALLOCATE PREPARE stmt;
-
-		SET @bookId = (SELECT lastBookID());
-
-		SET @query2 = 'INSERT INTO BookStatus(book_id) VALUES(?)';
-		PREPARE stmt FROM @query2;
-		EXECUTE stmt USING @bookId;
-		DEALLOCATE PREPARE stmt;
-		
-	COMMIT;
-	
-	
-END$$
-DELIMITER ;
-*/
 
 DELIMITER $$
 CREATE PROCEDURE addBook(
@@ -207,8 +157,8 @@ DELIMITER ;
 
 DELIMITER $$
 CREATE PROCEDURE borrowBook(
-IN book_id int(11),
 IN user_id int(11),
+IN book_id int(11),
 IN employee_id int(11)
 )
 BEGIN
@@ -339,7 +289,7 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE registerLibrarian (
+CREATE PROCEDURE registerEmployee (
 IN first_name varchar(512),
 IN last_name varchar(512),
 IN login varchar(512), 
@@ -482,6 +432,7 @@ BEGIN
 	DECLARE tempUserId int(11);
 	DECLARE tempBookId int(11);
 	DECLARE tempCountLogs INT DEFAULT 0;
+	DECLARE returnDate date;
 	DECLARE successFlag int;
 
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -493,6 +444,7 @@ BEGIN
 	
 	SET @tempUserId = user_id;
 	SET @tempBookId = book_id;
+	SET @retunDate = (SELECT CAST(CURRENT_TIMESTAMP AS DATE));
 	
 	SET @query = 'SELECT COUNT(*) INTO @tempCountLogs FROM BorrowLog WHERE BorrowLog.user_id = ? AND BorrowLog.book_id = ?';
 	PREPARE stmt FROM @query;
@@ -505,9 +457,9 @@ BEGIN
 			SET @successFlag = 0;
 			
 		ELSE
-			SET @query = 'DELETE FROM BorrowLog WHERE BorrowLog.user_id = ? AND BorrowLog.book_id = ?';
+			SET @query = 'UPDATE BorrowLog SET BorrowLog.returned_date = ? WHERE BorrowLog.user_id = ? AND BorrowLog.book_id = ?';
 			PREPARE stmt FROM @query;
-			EXECUTE stmt USING @tempUserId, @tempBookId;
+			EXECUTE stmt USING @retunDate, @tempUserId, @tempBookId;
 			DEALLOCATE PREPARE stmt;
 			
 			SET @successFlag = 1;
@@ -589,42 +541,6 @@ BEGIN
 END$$
 DELIMITER ;
 
-
-DELIMITER $$
-CREATE PROCEDURE cleanDelayPenalty(
-IN user_id int(11)
-)
-BEGIN
-	DECLARE tempUserId int(11);
-	DECLARE successFlag int;
-
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	BEGIN
-		ROLLBACK;
-		SET @successFlag = 0;
-		SELECT @successFlag;
-	END;
-	
-	SET @tempUserId = user_id;
-	
-	SET autocommit = 0;	
-	START TRANSACTION;
-		
-		SET @query = 'UPDATE Users SET Users.delayPenalty = 0 WHERE Users.id = ?';
-		
-		PREPARE stmt FROM @query;
-		EXECUTE stmt USING @tempUserId;
-		DEALLOCATE PREPARE stmt;
-				
-	COMMIT;
-
-	SET @successFlag = 1;
-	SELECT @successFlag; 
-	
-END $$
-DELIMITER ;
-
-
 # Functions
 
 DELIMITER $$
@@ -656,36 +572,16 @@ ON BorrowLog
 FOR EACH ROW 
 BEGIN
 
- 	UPDATE Users SET Users.numOfBorrowedBooks = Users.numOfBorrowedBooks + 1 WHERE Users.id = NEW.user_id;
 	UPDATE BookStatus SET BookStatus.status = 'borrowed' WHERE BookStatus.book_id = NEW.book_id;
 	
 END $$
 DELIMITER ;
 
-
 DELIMITER $$
-CREATE TRIGGER checkDueDate BEFORE DELETE
+CREATE TRIGGER changeStatusReturned  AFTER UPDATE -- prev: DELETE
 ON BorrowLog
 FOR EACH ROW 
 BEGIN
-	DECLARE delayInDays INT;
-
-	SET delayInDays = (SELECT CAST(TIMESTAMPDIFF(DAY, OLD.due_date, CAST(CURRENT_TIMESTAMP AS DATE)) AS INT));
-	IF delayInDays > 0 THEN
-	
-		UPDATE Users SET Users.delayPenalty = Users.delayPenalty + (0.1)*delayInDays WHERE Users.id = OLD.user_id;
-		
-	END IF;
-END $$
-DELIMITER ;
-
-
-DELIMITER $$
-CREATE TRIGGER changeStatusReturned  AFTER DELETE
-ON BorrowLog
-FOR EACH ROW 
-BEGIN
-	UPDATE Users SET Users.numOfBorrowedBooks = Users.numOfBorrowedBooks - 1 WHERE Users.id = OLD.user_id;
 	UPDATE BookStatus SET BookStatus.status = 'avaliable' WHERE BookStatus.book_id = OLD.book_id;
 
 END $$
@@ -697,9 +593,9 @@ DELIMITER ;
 CALL registerUser('Anna', 'Kowalski', 784254125, 'anka99', 'ak123');
 CALL registerUser('Wiktor', 'Matejko', 653586452, 'wikmat', 'wm123');
 
-CALL registerLibrarian('Adam', 'Nowak', 'anowak', 'an123', 'librarian');
-CALL registerLibrarian('Jan', 'Kowalski', 'jkowalski', 'jk123', 'librarian');
-CALL registerLibrarian('Admin', 'Admin', 'admin', 'admin123', 'admin');
+CALL registerEmployee('Adam', 'Nowak', 'anowak', 'an123', 'librarian');
+CALL registerEmployee('Jan', 'Kowalski', 'jkowalski', 'jk123', 'librarian');
+CALL registerEmployee('Admin', 'Admin', 'admin', 'admin123', 'admin');
 
 CALL addCategory('Horror');
 CALL addCategory('Romance');
@@ -758,22 +654,15 @@ SET PASSWORD FOR 'user'@'%' = PASSWORD('user');
 
 -- Admin
 GRANT ALL ON `book_library`.* TO 'admin'@'%';
---GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON 'book_library'.* TO 'admin'@'%';
---GRANT DROP, CREATE, ALTER ON 'book_library'.* TO 'admin'@'%';
---GRANT EXECUTE ON PROCEDURE book_library.registerLibrarian TO 'admin'@'%';
---GRANT EXECUTE ON PROCEDURE book_library.deleteEmployee TO 'admin'@'%';
---GRANT EXECUTE ON PROCEDURE book_library.deleteUser TO 'admin'@'%';
 
 -- User
 GRANT EXECUTE ON PROCEDURE `book_library`.`registerUser` TO 'user'@'%';
 GRANT EXECUTE ON PROCEDURE book_library.logInUser TO 'user'@'%';
 
---GRANT SELECT first_name, last_name, created_year, phone_number ON book_library.Users TO 'user'@'%';
 GRANT SELECT ON book_library.userView to 'user'@'%';
 GRANT SELECT ON book_library.BookCategories TO 'user'@'%';
 GRANT SELECT ON book_library.BookStatus TO 'user'@'%';
 GRANT SELECT ON book_library.Books TO 'user'@'%';
-
 
 -- Librarian
 GRANT EXECUTE ON PROCEDURE book_library.addBook TO 'librarian'@'%';

@@ -1,0 +1,47 @@
+# Show All BookCategories
+
+# Librarian and Customer (user) are able to show ALL CATEGORIES
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+# Customer pov
+curl -s http://localhost:8080/book-library/customer/category  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq
+
+# Librarian pov
+curl -s http://localhost:8080/book-library/librarian/category  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq
+
+
+[
+  {
+    "idx": 1,
+    "category": "Horror"
+  },
+  {
+    "idx": 2,
+    "category": "Romance"
+  },
+  {
+    "idx": 3,
+    "category": "Science Fiction"
+  },
+  {
+    "idx": 4,
+    "category": "Adventure"
+  },
+  {
+    "idx": 5,
+    "category": "Fairy tale"
+  },
+  {
+    "idx": 6,
+    "category": "Crime"
+  },
+  {
+    "idx": 7,
+    "category": "Fantasy"
+  },
+  {
+    "idx": 8,
+    "category": "Historical fiction"
+  }
+]
