@@ -119,9 +119,11 @@ func SetupRouter() *gin.Engine {
 
 		bookLibrarian.POST("return", controllers.ReturnBook)
 
-		bookLibrarian.GET("status", controllers.GetStatuses)
+		bookLibrarian.GET("copy", controllers.GetCopies)
 
 		bookLibrarian.GET("avaliable", controllers.GetAvaliable)
+
+		bookLibrarian.POST("copy", controllers.AddBookCopy)
 	}
 
 	bookUser.Use(authMiddlewareUser.MiddlewareFunc())

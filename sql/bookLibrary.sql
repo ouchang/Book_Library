@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS BookCategories (
 
 CREATE TABLE IF NOT EXISTS Books (
   id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	isbn varchar(20) NOT NULL,
   title varchar(1000) NOT NULL,
   author  varchar(1000) NOT NULL,
   publication_year year NOT NULL,
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS Employees (
   employee_type enum('librarian', 'admin') NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS BookStatus (
+CREATE TABLE IF NOT EXISTS BookCopies (
+	id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
   book_id int(5) NOT NULL,
   status enum('avaliable', 'borrowed') DEFAULT 'avaliable',
   FOREIGN KEY (book_id) REFERENCES Books(id)
@@ -49,8 +51,9 @@ CREATE TABLE IF NOT EXISTS BorrowLog (
   release_date date NOT NULL,
   due_date date NOT NULL,
 	returned_date date,
+	returned boolean DEFAULT FALSE,
   FOREIGN KEY (user_id) REFERENCES Users(id),
-  FOREIGN KEY (book_id) REFERENCES Books(id),
+  FOREIGN KEY (book_id) REFERENCES BookCopies(id),
   FOREIGN KEY (employee_id) REFERENCES Employees(id)
 );
 
@@ -95,15 +98,53 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE addBookCopy (
+IN isbn varchar(20)
+)
+BEGIN 
+	DECLARE tempISBN varchar(20);
+	DECLARE bookId int(11);
+	DECLARE successFlag int;
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+		ROLLBACK;
+		SET @successFlag = 0;
+		SELECT @successFlag;
+	END;
+
+	SET @tempISBN = isbn;
+	SET @bookId = NULL;
+
+	SET autocommit = 0;
+	START TRANSACTION;
+		SET @query = "SELECT id INTO @bookId FROM Books WHERE Books.isbn = ?";
+		PREPARE stmt FROM @query;
+		EXECUTE stmt USING @tempISBN;
+		DEALLOCATE PREPARE stmt;
+
+		SET @query2 = 'INSERT INTO BookCopies(book_id) VALUES(?)';
+		PREPARE stmt FROM @query2;
+		EXECUTE stmt USING @bookId;
+		DEALLOCATE PREPARE stmt;
+	COMMIT;
+
+	SET @successFlag = 1;
+	SELECT @successFlag;
+
+END$$
 
 DELIMITER $$
 CREATE PROCEDURE addBook(
+IN isbn varchar(20),
 IN title varchar(1000),
 IN author varchar(1000),
 IN publication_year YEAR,
 IN category varchar(255)
 )
 BEGIN
+	DECLARE tempISBN varchar(20);
 	DECLARE tempTitle VARCHAR(1000);
 	DECLARE tempAuthor VARCHAR(1000);
 	DECLARE tempPublicationYear YEAR;
@@ -119,6 +160,7 @@ BEGIN
 		SELECT @successFlag;
 	END;
 
+	SET @tempISBN = isbn;
 	SET @tempTitle = title;
 	SET @tempAuthor = author;
 	SET @tempPublicationYear = publication_year;
@@ -134,14 +176,14 @@ BEGIN
 		EXECUTE stmt USING @tempCategory;
 		DEALLOCATE PREPARE stmt;
 	
-		SET @query1 = 'INSERT INTO Books(title, author, publication_year, category_id) VALUES(?, ?, ?, ?)';
+		SET @query1 = 'INSERT INTO Books(isbn, title, author, publication_year, category_id) VALUES(?, ?, ?, ?, ?)';
 		PREPARE stmt FROM @query1;
-		EXECUTE stmt USING @tempTitle, @tempAuthor, @tempPublicationYear, @tempCategoryId;
+		EXECUTE stmt USING @tempISBN, @tempTitle, @tempAuthor, @tempPublicationYear, @tempCategoryId;
 		DEALLOCATE PREPARE stmt;
 
 		SET @bookId = (SELECT lastBookID());
 
-		SET @query2 = 'INSERT INTO BookStatus(book_id) VALUES(?)';
+		SET @query2 = 'INSERT INTO BookCopies(book_id) VALUES(?)';
 		PREPARE stmt FROM @query2;
 		EXECUTE stmt USING @bookId;
 		DEALLOCATE PREPARE stmt;
@@ -201,7 +243,7 @@ BEGIN
 
 			IF @checkIfUserExists IS NOT NULL THEN
 
-				SET @query = 'SELECT status INTO @tempStatus FROM BookStatus WHERE BookStatus.book_id = ?';
+				SET @query = 'SELECT status INTO @tempStatus FROM BookCopies WHERE BookCopies.book_id = ?';
 				PREPARE stmt FROM @query;
 				EXECUTE stmt USING @tempBookId;
 				DEALLOCATE PREPARE stmt;
@@ -461,6 +503,11 @@ BEGIN
 			PREPARE stmt FROM @query;
 			EXECUTE stmt USING @retunDate, @tempUserId, @tempBookId;
 			DEALLOCATE PREPARE stmt;
+
+			SET @query = 'UPDATE BorrowLog SET BorrowLog.returned = TRUE WHERE BorrowLog.user_id = ? AND BorrowLog.book_id = ?';
+			PREPARE stmt FROM @query;
+			EXECUTE stmt USING @tempUserId, @tempBookId;
+			DEALLOCATE PREPARE stmt;
 			
 			SET @successFlag = 1;
 		END IF;
@@ -541,6 +588,74 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+DELIMITER $$
+CREATE PROCEDURE renewBook (
+	IN user_id int(11),
+	IN book_id int(11)
+)
+BEGIN
+	DECLARE tempUserId int(11);
+	DECLARE tempBookId int(11);
+	DECLARE releaseDate date;
+	DECLARE dueDate date;
+	DECLARE newDate date;
+	DECLARE monthDiff int;
+	DECLARE logId int;
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+		ROLLBACK;
+		SET @successFlag = 0;
+		SELECT @successFlag;
+	END;
+
+	SET @tempUserId = user_id;
+	SET @tempBookId = book_id;
+	SET @monthDiff = 0;
+	SET @logId = 0;
+	SET @newDate = NULL;
+	SET @releaseDate = NULL;
+	SET @dueDate = NULL;
+
+	START TRANSACTION;
+		SET @query = 'SELECT BorrowLog.id, BorrowLog.release_date, BorrowLog.due_date INTO @logId, @releaseDate, @dueDate FROM BorrowLog WHERE BorrowLog.user_id = ? AND BorrowLog.book_id = ? AND BorrowLog.returned = FALSE';
+		PREPARE stmt FROM @query;
+		EXECUTE stmt USING @tempUserId, @tempBookId;
+		DEALLOCATE PREPARE stmt;
+
+		SELECT @releaseDate;
+		SELECT @dueDate;
+
+		IF @logId = 0 THEN
+			SET @successFlag = 0;
+		ELSE
+			SET @newDate = (SELECT DATE_ADD(@dueDate, INTERVAL 1 MONTH));
+			SELECT @newDate;
+			SET @monthDiff = (SELECT TIMESTAMPDIFF(MONTH, @releaseDate, @newDate));
+			SELECT @monthDiff;
+
+			IF @monthDiff > 2 THEN
+				SET @successFlag = 0;
+			ELSE 
+
+				SET @query = 'UPDATE BorrowLog SET BorrowLog.due_date = ? WHERE user_id = ? AND book_id = ? AND BorrowLog.returned = FALSE';
+				PREPARE stmt FROM @query;
+				EXECUTE stmt USING @newDate, @tempUserId, @tempBookId;
+				DEALLOCATE PREPARE stmt;
+				
+				SET @successFlag = 1;
+
+			END IF;
+		END IF;
+		
+		SELECT @successFlag;
+	COMMIT;
+END$$
+DELIMITER ;
+
+
+
 # Functions
 
 DELIMITER $$
@@ -572,17 +687,19 @@ ON BorrowLog
 FOR EACH ROW 
 BEGIN
 
-	UPDATE BookStatus SET BookStatus.status = 'borrowed' WHERE BookStatus.book_id = NEW.book_id;
+	UPDATE BookCopies SET BookCopies.status = 'borrowed' WHERE BookCopies.book_id = NEW.book_id;
 	
 END $$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER changeStatusReturned  AFTER UPDATE -- prev: DELETE
+CREATE TRIGGER changeStatusReturned  AFTER UPDATE
 ON BorrowLog
-FOR EACH ROW 
+FOR EACH ROW
 BEGIN
-	UPDATE BookStatus SET BookStatus.status = 'avaliable' WHERE BookStatus.book_id = OLD.book_id;
+	IF NEW.returned = TRUE THEN
+		UPDATE BookCopies SET BookCopies.status = 'avaliable' WHERE BookCopies.book_id = OLD.book_id;
+	END IF;
 
 END $$
 DELIMITER ;
@@ -606,10 +723,10 @@ CALL addCategory('Crime');
 CALL addCategory('Fantasy');
 CALL addCategory('Historical fiction');
 
-CALL addBook('A Tale Of Two Cities', 'Charles Dickens', 2018, 'Historical fiction');
-CALL addBook('The Little Prince', 'Antoine de Saint-Exupery', 2021, 'Adventure');
-CALL addBook('The Hobbit', 'JRR Tolkien', 2015, 'Fantasy');
-CALL addBook('Death On The Nile', 'Agatha Christie', 2012, 'Crime');
+CALL addBook('978-3-16-148410-0','A Tale Of Two Cities', 'Charles Dickens', 2018, 'Historical fiction');
+CALL addBook('922-3-16-148410-0', 'The Little Prince', 'Antoine de Saint-Exupery', 2021, 'Adventure');
+CALL addBook('989-3-16-148410-0','The Hobbit', 'JRR Tolkien', 2015, 'Fantasy');
+CALL addBook('998-3-22-148610-0', 'Death On The Nile', 'Agatha Christie', 2012, 'Crime');
 
 --# Views
 
@@ -623,7 +740,7 @@ CREATE VIEW employeeView AS (
 
 --# PrepareStatements
 
-PREPARE showBooksBasedOnStatus FROM 'SELECT Books.title FROM Books JOIN BookStatus ON BookStatus.book_id = Books.id WHERE BookStatus.status = ?';
+PREPARE showBooksBasedOnStatus FROM 'SELECT Books.title FROM Books JOIN BookCopies ON BookCopies.book_id = Books.id WHERE BookCopies.status = ?';
 
 PREPARE showUserInfoBasedOnLogin FROM 'SELECT first_name, last_name, created_year, phone_number FROM Users WHERE Users.login = ?';
 
@@ -639,7 +756,7 @@ PREPARE showBooksBasedOnAuthor FROM 'SELECT title, author, publication_year, cat
 
 PREPARE showBooksBasedOnCategory FROM 'SELECT first_name, last_name, created_year, phone_number FROM Users WHERE Users.login = ?';
 
-PREPARE showAvaliableCategories FROM 'SELECT category FROM BookCategories JOIN Books ON Books.category_id = BookCategories.id JOIN BookStatus ON BookStatus.book_id = Books.id WHERE BookStatus.status = \'avaliable\' GROUP BY BookCategories.id HAVING COUNT(*) > 0';
+PREPARE showAvaliableCategories FROM 'SELECT category FROM BookCategories JOIN Books ON Books.category_id = BookCategories.id JOIN BookCopies ON BookCopies.book_id = Books.id WHERE BookCopies.status = \'avaliable\' GROUP BY BookCategories.id HAVING COUNT(*) > 0';
 
 --# UsersPriviligies
 
@@ -661,7 +778,7 @@ GRANT EXECUTE ON PROCEDURE book_library.logInUser TO 'user'@'%';
 
 GRANT SELECT ON book_library.userView to 'user'@'%';
 GRANT SELECT ON book_library.BookCategories TO 'user'@'%';
-GRANT SELECT ON book_library.BookStatus TO 'user'@'%';
+GRANT SELECT ON book_library.BookCopies TO 'user'@'%';
 GRANT SELECT ON book_library.Books TO 'user'@'%';
 
 -- Librarian
@@ -672,7 +789,7 @@ GRANT EXECUTE ON PROCEDURE book_library.logInLibrarian TO 'librarian'@'%';
 
 GRANT UPDATE, DELETE, INSERT, SELECT ON book_library.BorrowLog TO 'librarian'@'%';
 GRANT UPDATE, DELETE, INSERT, SELECT ON book_library.Books TO 'librarian'@'%';
-GRANT UPDATE, DELETE, INSERT, SELECT ON book_library.BookStatus TO 'librarian'@'%';
+GRANT UPDATE, DELETE, INSERT, SELECT ON book_library.BookCopies TO 'librarian'@'%';
 GRANT UPDATE, DELETE, INSERT, SELECT ON book_library.BookCategories TO 'librarian'@'%';
 GRANT SELECT ON book_library.employeeView to 'librarian'@'%';
 GRANT SELECT ON book_library.userView to 'librarian'@'%';
