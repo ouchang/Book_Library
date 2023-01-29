@@ -1,0 +1,17 @@
+# Admin Token refresh
+
+curl -s   http://localhost:8080/book-library/admin/token  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+# Librarian Token refresh
+
+curl -s   http://localhost:8080/book-library/librarian/token  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+# Customer Token refresh
+
+curl -s   http://localhost:8080/book-library/customer/token  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)

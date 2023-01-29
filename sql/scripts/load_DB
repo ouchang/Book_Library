@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sqlfile=$1
+
+mysql -h localhost  -P 4306 --protocol=TCP -u root -p --password='123456' < ${sqlfile}

@@ -1,0 +1,10 @@
+# Add Customer (user)
+
+curl -s  -XPOST  http://localhost:8080/book-library/admin/user  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @newuser.json | jq
+
+** example newuser.json payload
+> cat newuser.json
+{"first_name": "Adam","last_name": "KKKKK", "phone_number": 711000000, "login": "akkkk", "password": "olaboga"}
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+** Admin is ONLY able to add new user

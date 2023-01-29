@@ -1,0 +1,9 @@
+# Add Book
+curl -s  -XPOST  http://localhost:8080/book-library/librarian/book  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @newbook.json  | jq
+
+** example newbook.json payload
+> cat newbook.json
+{"title": "Kubus Puchatek 2", "author": "X Y", "publication_year": 2023, "category": "Fantasy"}
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+** Librarian is able to add new book

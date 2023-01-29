@@ -1,0 +1,89 @@
+# Show All books
+
+# Librarian and Customer is able to show ALL BOOKS 
+
+# example for Librarian
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s http://localhost:8080/book-library/librarian/book --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq 
+[
+  {
+    "id": 1,
+    "title": "A Tale Of Two Cities",
+    "author": "Charles Dickens",
+    "publication_year": 2018,
+    "category_id": 8
+  },
+  {
+    "id": 2,
+    "title": "The Little Prince",
+    "author": "Antoine de Saint-Exupery",
+    "publication_year": 2021,
+    "category_id": 4
+  },
+  {
+    "id": 3,
+    "title": "The Hobbit",
+    "author": "JRR Tolkien",
+    "publication_year": 2015,
+    "category_id": 7
+  },
+  {
+    "id": 4,
+    "title": "Death On The Nile",
+    "author": "Agatha Christie",
+    "publication_year": 2012,
+    "category_id": 6
+  },
+  {
+    "id": 5,
+    "title": "Kubus Puchatek",
+    "author": "X Y",
+    "publication_year": 2023,
+    "category_id": 7
+  }
+]
+
+# example for Customer
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+curl -s http://localhost:8080/book-library/customer/book --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" | jq 
+[
+  {
+    "id": 1,
+    "title": "A Tale Of Two Cities",
+    "author": "Charles Dickens",
+    "publication_year": 2018,
+    "category_id": 8
+  },
+  {
+    "id": 2,
+    "title": "The Little Prince",
+    "author": "Antoine de Saint-Exupery",
+    "publication_year": 2021,
+    "category_id": 4
+  },
+  {
+    "id": 3,
+    "title": "The Hobbit",
+    "author": "JRR Tolkien",
+    "publication_year": 2015,
+    "category_id": 7
+  },
+  {
+    "id": 4,
+    "title": "Death On The Nile",
+    "author": "Agatha Christie",
+    "publication_year": 2012,
+    "category_id": 6
+  },
+  {
+    "id": 5,
+    "title": "Kubus Puchatek",
+    "author": "X Y",
+    "publication_year": 2023,
+    "category_id": 7
+  }
+]

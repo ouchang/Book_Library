@@ -1,0 +1,37 @@
+# Admin Login
+
+## Admin is an employee from Employees Table who has employee_type = admin
+MariaDB [book_library]> select * from Employees where employee_type='admin';
++----+------------+-----------+-------+------------------------------------------------------------------+---------------+
+| id | first_name | last_name | login | password                                                         | employee_type |
++----+------------+-----------+-------+------------------------------------------------------------------+---------------+
+|  3 | Admin      | Admin     | admin | 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9 | admin         |
++----+------------+-----------+-------+------------------------------------------------------------------+---------------+
+
+curl -s -XPOST  http://localhost:8080/book-library/admin/login  --header "Content-Type: application/json" --data '{"login": "<LOGIN>", "password": "<PASSWORD>"}'  | jq
+
+# Librarian Login
+
+## Librarian is an employee from Employees Table who has employee_type = librarian
+MariaDB [book_library]> select * from Employees where employee_type='librarian';
++----+------------+-----------+-----------+------------------------------------------------------------------+---------------+
+| id | first_name | last_name | login     | password                                                         | employee_type |
++----+------------+-----------+-----------+------------------------------------------------------------------+---------------+
+|  1 | Adam       | Nowak     | anowak    | dda798a799ac9bea14584665d896892b28f87076be0cbe7e07a9339f8934133b | librarian     |
+|  2 | Jan        | Kowalski  | jkowalski | 7349894c9dc5ef1ed7881b638596b0e43f5a96c9856911af3195b8f033654c56 | librarian     |
++----+------------+-----------+-----------+------------------------------------------------------------------+---------------+
+
+curl -s  -XPOST  http://localhost:8080/book-library/librarian/login  --header "Content-Type: application/json" --data '{"login": "<LOGIN>", "password": "<PASSWORD>"}'  | jq
+
+# Customer Login
+
+## Customer is an user from Users table
+MariaDB [book_library]> select * from Users;
++----+------------+-----------+--------------+--------------+--------+------------------------------------------------------------------+--------------------+--------------+
+| id | first_name | last_name | created_year | phone_number | login  | password                                                         | numOfBorrowedBooks | delayPenalty |
++----+------------+-----------+--------------+--------------+--------+------------------------------------------------------------------+--------------------+--------------+
+|  1 | Anna       | Kowalski  |         2023 |    784254125 | anka99 | eaf5ae544eb7b3aa44a8159f7e4e5daf5724dae5363950de4d1bbb1e3112c7f0 |                  0 |            0 |
+|  2 | Wiktor     | Matejko   |         2023 |    653586452 | wikmat | c66434cc3b0d8e55a75c3b1fdd61a58bbee23b9fe5bde332edf5bb9fcbbec6cb |                  0 |            0 |
++----+------------+-----------+--------------+--------------+--------+------------------------------------------------------------------+--------------------+--------------+
+
+curl -s  -XPOST  http://localhost:8080/book-library/customer/login  --header "Content-Type: application/json" --data '{"login": "<LOGIN>", "password": "<PASSWORD>"}'  | jq
