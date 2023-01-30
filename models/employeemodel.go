@@ -19,6 +19,10 @@ type Employee struct {
 	EmployeeType string `json:"employee_type" binding:"required"`
 }
 
+type EmployeeId struct {
+	Id int `json:"id"`
+}
+
 func (e *Employee) TableName() string {
 	return "Employees"
 }
@@ -77,6 +81,32 @@ func AddEmployee(employee Employee) (err error) {
 
 	if registerCode == 0 {
 		return fmt.Errorf("mysql procedure registerEmployee failed")
+	}
+
+	return nil
+}
+
+func DeleteEmployee(employee_id EmployeeId) (err error) {
+	var registerCode int
+	delete, err := config.DB.Query("call deleteEmployee(?)", employee_id.Id)
+
+	if err != nil {
+		return err
+	}
+
+	for delete.Next() {
+
+		err2 := delete.Scan(&registerCode)
+
+		if err2 != nil {
+			return err2
+		}
+	}
+
+	defer delete.Close()
+
+	if registerCode == 0 {
+		return fmt.Errorf("mysql procedure deleteEmployee failed")
 	}
 
 	return nil

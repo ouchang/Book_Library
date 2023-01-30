@@ -11,10 +11,13 @@ func GetBooks(c *gin.Context) {
 	var books []models.Book
 	var err error
 
-	title, ok := c.GetQuery("title")
+	title, title_ok := c.GetQuery("title")
+	author, author_ok := c.GetQuery("author")
 
-	if ok {
+	if title_ok {
 		err = models.GetBooksByTitle(&books, title)
+	} else if author_ok {
+		err = models.GetBooksByAuthor(&books, author)
 	} else {
 		err = models.GetAllBooks(&books)
 	}

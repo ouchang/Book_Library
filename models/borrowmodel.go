@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"gobooklibrary/config"
+	"strconv"
 )
 
 type Borrow struct {
@@ -30,6 +31,29 @@ func GetAllBorrows(borrows *[]Borrow) (err error) {
 		return err
 	}
 
+	return nil
+}
+
+func GetUsersBorrows(borrows *[]Borrow, login string) (err error) {
+	var userId int
+	select_query, err := config.DB.Query("SELECT id FROM Users WHERE login = ?", login)
+
+	if err != nil {
+		return err
+	}
+
+	for select_query.Next() {
+
+		err2 := select_query.Scan(&userId)
+
+		if err2 != nil {
+			return err2
+		}
+	}
+
+	if err = config.ORMDB.Where("user_id LIKE ?", "%"+strconv.Itoa(userId)+"%").Find(&borrows).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
