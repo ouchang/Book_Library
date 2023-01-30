@@ -102,8 +102,12 @@ func SetupRouter() *gin.Engine {
 		bookAdmin.GET("user", controllers.GetUsers)
 		bookAdmin.POST("user", controllers.AddUser)
 
+		bookAdmin.POST("deleteuser", controllers.DeleteUser)
+
 		bookAdmin.GET("employee", controllers.GetEmployees)
 		bookAdmin.POST("employee", controllers.AddEmployee)
+
+		bookAdmin.POST("deleteemployee", controllers.DeleteEmployee)
 	}
 
 	bookLibrarian.Use(authMiddlewareLibrarian.MiddlewareFunc())
@@ -116,6 +120,8 @@ func SetupRouter() *gin.Engine {
 
 		bookLibrarian.GET("borrow", controllers.GetBorrows)
 		bookLibrarian.POST("borrow", controllers.AddBorrow)
+
+		bookLibrarian.POST("deletecopy", controllers.DeleteBookCopy)
 
 		bookLibrarian.POST("return", controllers.ReturnBook)
 
@@ -137,6 +143,8 @@ func SetupRouter() *gin.Engine {
 		bookUser.GET("avaliable", controllers.GetAvaliable)
 
 		bookUser.POST("renew", controllers.RenewBook)
+
+		bookUser.GET("myborrows", controllers.GetMyBorrows)
 
 		//bookUser.POST("info", controllers.GetUserProfileInfo)
 	}

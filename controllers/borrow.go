@@ -9,7 +9,32 @@ import (
 
 func GetBorrows(c *gin.Context) {
 	var borrows []models.Borrow
-	err := models.GetAllBorrows(&borrows)
+	var err error
+
+	user_login, user_login_ok := c.GetQuery("login")
+
+	if user_login_ok {
+		err = models.GetUsersBorrows(&borrows, user_login)
+	} else {
+		err = models.GetAllBorrows(&borrows)
+	}
+
+	if err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+	} else {
+		c.JSON(http.StatusOK, borrows)
+	}
+}
+
+func GetMyBorrows(c *gin.Context) {
+	var borrows []models.Borrow
+	var err error
+
+	user_login, user_login_ok := c.GetQuery("login")
+
+	if user_login_ok {
+		err = models.GetUsersBorrows(&borrows, user_login)
+	}
 
 	if err != nil {
 		c.AbortWithStatus(http.StatusNotFound)

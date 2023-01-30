@@ -1,0 +1,56 @@
+# Delete BookCopy
+
+# Librarian is able to delete book copy
+
+** JWT - this is the token taken from API LOGIN call (see api_login.txt)
+
+
+curl -s -XPOST http://localhost:8080/book-library/librarian/deletecopy  --header "Content-Type: application/json" -H "Authorization:Bearer <JWT>" --data @deleteBook.json| jq
+
+** example deleteBook.json payload
+> cat deleteBook.json
+{"id": 3}
+
+# Before
+[
+  {
+    "id": 1,
+    "book_id": 1,
+    "status": "avaliable"
+  },
+  {
+    "id": 2,
+    "book_id": 2,
+    "status": "avaliable"
+  },
+  {
+    "id": 3,
+    "book_id": 3,
+    "status": "avaliable"
+  },
+  {
+    "id": 4,
+    "book_id": 4,
+    "status": "avaliable"
+  }
+]
+
+# After
+[
+  {
+    "id": 1,
+    "book_id": 1,
+    "status": "avaliable"
+  },
+  {
+    "id": 2,
+    "book_id": 2,
+    "status": "avaliable"
+  },
+  {
+    "id": 4,
+    "book_id": 4,
+    "status": "avaliable"
+  }
+]
+

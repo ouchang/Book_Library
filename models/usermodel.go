@@ -15,6 +15,10 @@ type User struct {
 	Password    string `json:"password" binding:"required"`
 }
 
+type UserId struct {
+	Id int `json:"id"`
+}
+
 func (u *User) TableName() string {
 	return "Users"
 }
@@ -72,6 +76,32 @@ func AddUser(user User) (err error) {
 
 	if registerCode == 0 {
 		return fmt.Errorf("mysql procedure registerUser failed")
+	}
+
+	return nil
+}
+
+func DeleteUser(user_id UserId) (err error) {
+	var registerCode int
+	insert, err := config.DB.Query("call deleteUSer(?)", user_id.Id)
+
+	if err != nil {
+		return err
+	}
+
+	for insert.Next() {
+
+		err2 := insert.Scan(&registerCode)
+
+		if err2 != nil {
+			return err2
+		}
+	}
+
+	defer insert.Close()
+
+	if registerCode == 0 {
+		return fmt.Errorf("mysql procedure deleteUser failed")
 	}
 
 	return nil

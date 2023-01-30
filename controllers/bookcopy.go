@@ -42,3 +42,17 @@ func AddBookCopy(c *gin.Context) {
 		}
 	}
 }
+
+func DeleteBookCopy(c *gin.Context) {
+	var copy_id models.CopyId
+	var err error
+	if err = c.BindJSON(&copy_id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if err = models.DeleteBookCopy(copy_id); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.IndentedJSON(http.StatusCreated, copy_id)
+		}
+	}
+}

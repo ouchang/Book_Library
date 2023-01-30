@@ -384,6 +384,64 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE PROCEDURE deleteBookCopy(
+	IN copy_id int(11)
+)
+BEGIN
+	DECLARE successFlag int;
+	DECLARE tempCountCopies int;
+	DECLARE tempCopyId int(11);
+	DECLARE copyStatus varchar(20);
+	DECLARE statusBorrowed varchar(20);
+
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	BEGIN
+		ROLLBACK;
+		SET @successFlag = 0;
+		SELECT @successFlag;
+	END;
+
+	SET @tempCountCopies = 0;
+	SET @tempCopyId = copy_id;
+	SET @copyStatus = '';
+	SET @statusBorrowed = 'borrowed';
+
+	START TRANSACTION;
+		SET @query = 'SELECT COUNT(*) INTO @tempCountCopies FROM BookCopies WHERE BookCopies.id = ?';
+		PREPARE stmt FROM @query;
+		EXECUTE stmt USING @tempCopyId;
+		DEALLOCATE PREPARE stmt;
+
+		IF @tempCountCopies = 0 THEN
+			SET @successFlag = 0;
+		ELSE
+			SET @query = 'SELECT status INTO @copyStatus FROM BookCopies WHERE BookCopies.id = ?';
+			PREPARE stmt FROM @query;
+			EXECUTE stmt USING @tempCopyId;
+			DEALLOCATE PREPARE stmt;
+
+			IF @copyStatus <> @statusBorrowed THEN
+
+				set @query = 'DELETE FROM BookCopies WHERE BookCopies.id = ?';
+				PREPARE stmt FROM @query;
+				EXECUTE stmt USING @tempCopyId;
+				DEALLOCATE PREPARE stmt;
+
+				SET @successFlag = 1;
+
+			ELSE 
+				SET @successFlag = 0;
+			END IF;
+		END IF;
+
+		SELECT @successFlag;
+	COMMIT;
+END$$
+DELIMITER ;
+
+
+
+DELIMITER $$
 CREATE PROCEDURE deleteUser(
 IN user_id int(11)
 )
@@ -651,7 +709,7 @@ DELIMITER ;
 
 
 
-# Functions
+--# Functions
 
 DELIMITER $$
 CREATE FUNCTION lastBookID()
@@ -695,6 +753,24 @@ BEGIN
 	IF NEW.returned = TRUE THEN
 		UPDATE BookCopies SET BookCopies.status = 'avaliable' WHERE BookCopies.book_id = OLD.book_id;
 	END IF;
+
+END $$
+DELIMITER ;
+
+
+DELIMITER $$
+CREATE TRIGGER deleteBookIfZeroCopies  AFTER DELETE
+ON BookCopies
+FOR EACH ROW
+BEGIN
+
+		DECLARE copyCounter int;
+
+		SET @copyCounter = (SELECT COUNT(*) FROM BookCopies WHERE BookCopies.book_id = OLD.book_id);
+
+		IF @copyCounter = 0 THEN
+			DELETE FROM Books WHERE Books.id = OLD.book_id;
+		END IF;
 
 END $$
 DELIMITER ;

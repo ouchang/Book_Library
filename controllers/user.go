@@ -44,3 +44,17 @@ func GetUserProfileInfo(c *gin.Context) {
 		}
 	}
 }
+
+func DeleteUser(c *gin.Context) {
+	var user_id models.UserId
+	var err error
+	if err = c.BindJSON(&user_id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if err = models.DeleteUser(user_id); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.IndentedJSON(http.StatusCreated, user_id)
+		}
+	}
+}

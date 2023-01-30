@@ -32,3 +32,18 @@ func AddEmployee(c *gin.Context) {
 		}
 	}
 }
+
+func DeleteEmployee(c *gin.Context) {
+	var employee_id models.EmployeeId
+	var err error
+
+	if err = c.BindJSON(&employee_id); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		if err = models.DeleteEmployee(employee_id); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.IndentedJSON(http.StatusCreated, employee_id)
+		}
+	}
+}

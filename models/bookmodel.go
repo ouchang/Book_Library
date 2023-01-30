@@ -41,6 +41,13 @@ func GetBooksByTitle(books *[]Book, title string) (err error) {
 	return nil
 }
 
+func GetBooksByAuthor(books *[]Book, author string) (err error) {
+	if err = config.ORMDB.Where("author LIKE ?", "%"+author+"%").Find(&books).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func AddBook(book NewBook) (err error) {
 	var addBookCode int
 
